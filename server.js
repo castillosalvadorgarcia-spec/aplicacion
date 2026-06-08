@@ -1,4 +1,6 @@
 // ── Importamos las librerías instaladas ──────────────────
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -8,7 +10,7 @@ const routes = require('./routes');
 
 // ── Crear la aplicación Express ───────────────────────────
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // ── Middleware ────────────────────────────────────────────
 app.use(cors());
@@ -29,7 +31,7 @@ app.get('/', (req, res) => {
 database.conectar()
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
+      console.log(`✅ Servidor corriendo en puerto ${PORT}`);
       console.log('📦 MongoDB conectado correctamente');
     });
   })
