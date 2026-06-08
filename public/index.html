@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Estudiantes</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="header">
+    <h1>🎓 Gestión de Estudiantes</h1>
+    <p>Sistema CRUD con MongoDB</p>
+  </header>
+
+  <main class="main">
+
+    <!-- ─── FORMULARIO ──────────────────────────── -->
+    <section class="form-section">
+      <h2 id="form-titulo">➕ Nuevo Estudiante</h2>
+
+      <div id="alerta" class="alerta oculto"></div>
+
+      <div class="form-grid">
+        <div class="campo">
+          <label for="nombre">Nombre</label>
+          <input type="text" id="nombre" placeholder="Ej: María" required>
+        </div>
+        <div class="campo">
+          <label for="apellido">Apellido</label>
+          <input type="text" id="apellido" placeholder="Ej: García" required>
+        </div>
+        <div class="campo">
+          <label for="matricula">Matrícula</label>
+          <input type="text" id="matricula" placeholder="Ej: TEC2024001" required>
+        </div>
+        <div class="campo">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="correo@ejemplo.com" required>
+        </div>
+        <div class="campo">
+          <label for="carrera">Carrera</label>
+          <select id="carrera" required>
+            <option value="">-- Seleccionar --</option>
+            <option>Técnico en Programación</option>
+            <option>Técnico en Redes</option>
+            <option>Técnico en Soporte</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="semestre">Semestre</label>
+          <input type="number" id="semestre" min="1" max="10" placeholder="1-10">
+        </div>
+      </div>
+
+      <!-- Botones del formulario -->
+      <div class="form-botones">
+        <button id="btn-guardar" class="btn btn-primary">💾 Guardar</button>
+        <button id="btn-cancelar" class="btn btn-secondary oculto">✖ Cancelar</button>
+      </div>
+
+      <!-- Campo oculto para guardar el _id al editar -->
+      <input type="hidden" id="edit-id" value="">
+    </section>
+
+    <!-- ─── LISTA DE ESTUDIANTES ─────────────── -->
+    <section class="lista-section">
+      <div class="lista-header">
+        <h2>📋 Estudiantes Registrados</h2>
+        <span id="contador" class="contador">0 registros</span>
+      </div>
+      <div id="tabla-container">
+        <p class="sin-datos">No hay estudiantes registrados aún.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal de confirmación para eliminar -->
+  <div id="modal" class="modal oculto">
+    <div class="modal-box">
+      <h3>⚠️ ¿Eliminar estudiante?</h3>
+      <p>Esta acción <strong>no se puede deshacer</strong>.</p>
+      <div class="modal-botones">
+        <button id="btn-confirmar" class="btn btn-danger">Sí, eliminar</button>
+        <button id="btn-modal-cancelar" class="btn btn-secondary">No, volver</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
