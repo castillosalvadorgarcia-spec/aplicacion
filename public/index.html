@@ -1,93 +1,402 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestión de Estudiantes</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Componentes PC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .search {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            width: 300px;
+            font-size: 16px;
+        }
+        .form-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-card h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .form-card input, .form-card select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .form-card button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .form-card button:hover {
+            background: #2980b9;
+        }
+        #cancelar {
+            background: #95a5a6;
+        }
+        #cancelar:hover {
+            background: #7f8c8d;
+        }
+        .productos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .producto-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .producto-card:hover {
+            transform: translateY(-5px);
+        }
+        .producto-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .producto-info {
+            padding: 15px;
+        }
+        .producto-info h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .producto-info p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .acciones {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .acciones button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .editar {
+            background: #f39c12;
+            color: white;
+        }
+        .editar:hover {
+            background: #e67e22;
+        }
+        .eliminar {
+            background: #e74c3c;
+            color: white;
+        }
+        .eliminar:hover {
+            background: #c0392b;
+        }
+        .mensaje-vacio {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px;
+            background: white;
+            border-radius: 10px;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <header>
+            <div class="logo">Catálogo de Componentes de PC</div>
+            <input type="text" class="search" placeholder="Buscar componentes...">
+        </header>
 
-  <header class="header">
-    <h1>🎓 Gestión de Estudiantes</h1>
-    <p>Sistema CRUD con MongoDB</p>
-  </header>
-
-  <main class="main">
-
-    <!-- ─── FORMULARIO ──────────────────────────── -->
-    <section class="form-section">
-      <h2 id="form-titulo">➕ Nuevo Estudiante</h2>
-
-      <div id="alerta" class="alerta oculto"></div>
-
-      <div class="form-grid">
-        <div class="campo">
-          <label for="nombre">Nombre</label>
-          <input type="text" id="nombre" placeholder="Ej: María" required>
+        <div class="form-card">
+            <h2>Registrar Componente</h2>
+            <form id="formulario">
+                <input type="text" id="nombre" placeholder="Nombre del componente" required>
+                <input type="text" id="marca" placeholder="Marca" required>
+                <select id="categoria" required>
+                    <option value="">Selecciona una categoría</option>
+                    <option>CPU</option>
+                    <option>GPU</option>
+                    <option>RAM</option>
+                    <option>SSD</option>
+                    <option>HDD</option>
+                    <option>Motherboard</option>
+                    <option>Fuente de Poder</option>
+                    <option>Gabinete</option>
+                </select>
+                <input type="number" id="precio" placeholder="Precio" required>
+                <input type="number" id="stock" placeholder="Stock" required>
+                <input type="text" id="imagen" placeholder="URL de la imagen" required>
+                <input type="hidden" id="componenteId">
+                <button type="submit">Guardar Componente</button>
+                <button type="button" id="cancelar">Cancelar</button>
+            </form>
         </div>
-        <div class="campo">
-          <label for="apellido">Apellido</label>
-          <input type="text" id="apellido" placeholder="Ej: García" required>
-        </div>
-        <div class="campo">
-          <label for="matricula">Matrícula</label>
-          <input type="text" id="matricula" placeholder="Ej: TEC2024001" required>
-        </div>
-        <div class="campo">
-          <label for="email">Email</label>
-          <input type="email" id="email" placeholder="correo@ejemplo.com" required>
-        </div>
-        <div class="campo">
-          <label for="carrera">Carrera</label>
-          <select id="carrera" required>
-            <option value="">-- Seleccionar --</option>
-            <option>Técnico en Programación</option>
-            <option>Técnico en Redes</option>
-            <option>Técnico en Soporte</option>
-          </select>
-        </div>
-        <div class="campo">
-          <label for="semestre">Semestre</label>
-          <input type="number" id="semestre" min="1" max="10" placeholder="1-10">
-        </div>
-      </div>
 
-      <!-- Botones del formulario -->
-      <div class="form-botones">
-        <button id="btn-guardar" class="btn btn-primary">💾 Guardar</button>
-        <button id="btn-cancelar" class="btn btn-secondary oculto">✖ Cancelar</button>
-      </div>
-
-      <!-- Campo oculto para guardar el _id al editar -->
-      <input type="hidden" id="edit-id" value="">
-    </section>
-
-    <!-- ─── LISTA DE ESTUDIANTES ─────────────── -->
-    <section class="lista-section">
-      <div class="lista-header">
-        <h2>📋 Estudiantes Registrados</h2>
-        <span id="contador" class="contador">0 registros</span>
-      </div>
-      <div id="tabla-container">
-        <p class="sin-datos">No hay estudiantes registrados aún.</p>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Modal de confirmación para eliminar -->
-  <div id="modal" class="modal oculto">
-    <div class="modal-box">
-      <h3>⚠️ ¿Eliminar estudiante?</h3>
-      <p>Esta acción <strong>no se puede deshacer</strong>.</p>
-      <div class="modal-botones">
-        <button id="btn-confirmar" class="btn btn-danger">Sí, eliminar</button>
-        <button id="btn-modal-cancelar" class="btn btn-secondary">No, volver</button>
-      </div>
+        <div id="contenedorProductos" class="productos-grid"></div>
     </div>
-  </div>
 
-  <script src="app.js"></script>
+    <script>
+        // ── Verificar carga ──────────────────────────────────────────
+        console.log("🚀 app.js cargado correctamente");
+
+        // ── Elementos del DOM ──────────────────────────────────────
+        const formulario = document.getElementById('formulario');
+        const contenedor = document.getElementById('contenedorProductos');
+        const buscador = document.querySelector('.search');
+        const cancelar = document.getElementById('cancelar');
+
+        // ── Configuración API ──────────────────────────────────────
+        const API = '/api/componentes';
+
+        // ── Cargar componentes ─────────────────────────────────────
+        async function cargarComponentes() {
+            try {
+                console.log('📥 Cargando componentes...');
+                const respuesta = await fetch(API);
+                
+                if (!respuesta.ok) {
+                    throw new Error(`Error HTTP: ${respuesta.status}`);
+                }
+                
+                const componentes = await respuesta.json();
+                console.log(`✅ ${componentes.length} componentes cargados`);
+                mostrarComponentes(componentes);
+                
+            } catch (error) {
+                console.error('❌ Error al cargar componentes:', error);
+                contenedor.innerHTML = `
+                    <div class="mensaje-vacio">
+                        <p>❌ Error al cargar los componentes</p>
+                        <p style="font-size: 14px; color: #666;">${error.message}</p>
+                        <button onclick="cargarComponentes()" style="margin-top: 10px; padding: 10px 20px; cursor: pointer; background: #3498db; color: white; border: none; border-radius: 5px;">
+                            🔄 Reintentar
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // ── Mostrar componentes ────────────────────────────────────
+        function mostrarComponentes(componentes) {
+            contenedor.innerHTML = '';
+
+            if (componentes.length === 0) {
+                contenedor.innerHTML = `
+                    <div class="mensaje-vacio">
+                        <p>📦 No hay componentes registrados</p>
+                        <p style="font-size: 14px; color: #666;">Agrega tu primer componente usando el formulario</p>
+                    </div>
+                `;
+                return;
+            }
+
+            componentes.forEach(componente => {
+                const card = document.createElement('div');
+                card.classList.add('producto-card');
+
+                const imagenSrc = componente.imagen || 'https://via.placeholder.com/200x150?text=Sin+Imagen';
+
+                card.innerHTML = `
+                    <img src="${imagenSrc}" alt="${componente.nombre}" onerror="this.src='https://via.placeholder.com/200x150?text=Error+Imagen'">
+                    <div class="producto-info">
+                        <h3>${componente.nombre}</h3>
+                        <p><strong>Marca:</strong> ${componente.marca}</p>
+                        <p><strong>Categoría:</strong> ${componente.categoria}</p>
+                        <p><strong>Precio:</strong> $${componente.precio}</p>
+                        <p><strong>Stock:</strong> ${componente.stock}</p>
+                        <div class="acciones">
+                            <button class="editar" onclick="editarComponente('${componente._id}')">✏️ Editar</button>
+                            <button class="eliminar" onclick="eliminarComponente('${componente._id}')">🗑️ Eliminar</button>
+                        </div>
+                    </div>
+                `;
+                contenedor.appendChild(card);
+            });
+        }
+
+        // ── Guardar componente ─────────────────────────────────────
+        formulario.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const id = document.getElementById('componenteId').value;
+            const botonSubmit = formulario.querySelector('button[type="submit"]');
+            
+            botonSubmit.disabled = true;
+            botonSubmit.textContent = '⏳ Guardando...';
+
+            const componente = {
+                nombre: document.getElementById('nombre').value.trim(),
+                marca: document.getElementById('marca').value.trim(),
+                categoria: document.getElementById('categoria').value,
+                precio: parseFloat(document.getElementById('precio').value),
+                stock: parseInt(document.getElementById('stock').value),
+                imagen: document.getElementById('imagen').value.trim()
+            };
+
+            console.log('📤 Enviando datos:', componente);
+
+            try {
+                let url = API;
+                let metodo = 'POST';
+
+                if (id) {
+                    url = `${API}/${id}`;
+                    metodo = 'PUT';
+                }
+
+                const respuesta = await fetch(url, {
+                    method: metodo,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(componente)
+                });
+
+                const resultado = await respuesta.json();
+
+                if (!respuesta.ok) {
+                    throw new Error(resultado.error || 'Error al guardar');
+                }
+
+                console.log('✅ Componente guardado:', resultado);
+                formulario.reset();
+                document.getElementById('componenteId').value = '';
+                await cargarComponentes();
+
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert(`Error: ${error.message}`);
+            } finally {
+                botonSubmit.disabled = false;
+                botonSubmit.textContent = 'Guardar Componente';
+            }
+        });
+
+        // ── Editar componente ──────────────────────────────────────
+        async function editarComponente(id) {
+            try {
+                const respuesta = await fetch(`${API}/${id}`);
+                const componente = await respuesta.json();
+
+                document.getElementById('componenteId').value = componente._id;
+                document.getElementById('nombre').value = componente.nombre;
+                document.getElementById('marca').value = componente.marca;
+                document.getElementById('categoria').value = componente.categoria;
+                document.getElementById('precio').value = componente.precio;
+                document.getElementById('stock').value = componente.stock;
+                document.getElementById('imagen').value = componente.imagen;
+
+                const botonSubmit = formulario.querySelector('button[type="submit"]');
+                botonSubmit.textContent = '✏️ Actualizar Componente';
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            } catch (error) {
+                console.error('❌ Error al editar:', error);
+                alert('Error al cargar los datos');
+            }
+        }
+
+        // ── Eliminar componente ────────────────────────────────────
+        async function eliminarComponente(id) {
+            if (!confirm('¿Estás seguro de eliminar este componente?')) return;
+
+            try {
+                const respuesta = await fetch(`${API}/${id}`, { method: 'DELETE' });
+                
+                if (!respuesta.ok) {
+                    throw new Error('Error al eliminar');
+                }
+
+                console.log('✅ Componente eliminado');
+                await cargarComponentes();
+
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert('Error al eliminar');
+            }
+        }
+
+        // ── Cancelar edición ──────────────────────────────────────
+        cancelar.addEventListener('click', () => {
+            formulario.reset();
+            document.getElementById('componenteId').value = '';
+            const botonSubmit = formulario.querySelector('button[type="submit"]');
+            botonSubmit.textContent = 'Guardar Componente';
+        });
+
+        // ── Buscador ──────────────────────────────────────────────
+        buscador.addEventListener('input', async (e) => {
+            const texto = e.target.value.toLowerCase().trim();
+
+            if (texto === '') {
+                cargarComponentes();
+                return;
+            }
+
+            try {
+                const respuesta = await fetch(API);
+                const componentes = await respuesta.json();
+                
+                const filtrados = componentes.filter(c => 
+                    c.nombre.toLowerCase().includes(texto) ||
+                    c.marca.toLowerCase().includes(texto) ||
+                    c.categoria.toLowerCase().includes(texto)
+                );
+                
+                mostrarComponentes(filtrados);
+            } catch (error) {
+                console.error('❌ Error en búsqueda:', error);
+            }
+        });
+
+        // ── Iniciar aplicación ────────────────────────────────────
+        console.log('🔄 Iniciando aplicación...');
+        cargarComponentes();
+    </script>
 </body>
 </html>

@@ -1,200 +1,352 @@
-// ── URL base de la API ───────────────────────────────────
-const API = 'http://localhost:3000/api/estudiantes';
+// ── Verificar carga ──────────────────────────────────────────
+console.log("🚀 app.js cargado correctamente");
 
-// ── Referencias a elementos del DOM ─────────────────────
-const campos = {
-  nombre:   document.getElementById('nombre'),
-  apellido: document.getElementById('apellido'),
-  matricula:document.getElementById('matricula'),
-  email:    document.getElementById('email'),
-  carrera:  document.getElementById('carrera'),
-  semestre: document.getElementById('semestre')
-};
-const editId        = document.getElementById('edit-id');
-const btnGuardar    = document.getElementById('btn-guardar');
-const btnCancelar   = document.getElementById('btn-cancelar');
-const formTitulo    = document.getElementById('form-titulo');
-const alertaEl      = document.getElementById('alerta');
-const tablaContainer= document.getElementById('tabla-container');
-const contadorEl    = document.getElementById('contador');
-const modal         = document.getElementById('modal');
-const btnConfirmar  = document.getElementById('btn-confirmar');
-const btnModalCancel= document.getElementById('btn-modal-cancelar');
-let   idParaEliminar = null; // Guardará el _id cuando se quiere eliminar
+// ── Elementos del DOM ──────────────────────────────────────
+const formulario = document.getElementById('formulario');
+const contenedor = document.getElementById('contenedorProductos');
+const buscador = document.querySelector('.search');
+const cancelar = document.getElementById('cancelar');
 
-// ══════════════════════════════════════════════════════════
-// READ — Cargar y mostrar todos los estudiantes
-// ══════════════════════════════════════════════════════════
-async function cargarEstudiantes() {
-  try {
-    const resp = await fetch(API);
-    const data = await resp.json();
+// ── Configuración API ──────────────────────────────────────
+const API = '/api/componentes';
 
-    contadorEl.textContent = `${data.total} registros`;
+// ── Cargar componentes ─────────────────────────────────────
+async function cargarComponentes() {
+    try {
+        console.log('📥 Cargando componentes...');
+        const respuesta = await fetch(API);
+        
+        if (!respuesta.ok) {
+            throw new Error(`Error HTTP: ${respuesta.status}`);
+        }
+        
+        const componentes = await respuesta.json();
+        console.log(`✅ ${componentes.length} componentes cargados`);
+        mostrarComponentes(componentes);
+        
+    } catch (error) {
+        console.error('❌ Error al cargar componentes:', error);
+        mostrarMensajeError('Error al cargar los componentes. Verifica que el servidor esté corriendo.');
+    }
+}
 
-    if (data.datos.length === 0) {
-      tablaContainer.innerHTML =
-        '<p class="sin-datos">No hay estudiantes registrados aún.</p>';
-      return;
+// ── Mostrar componentes ────────────────────────────────────
+function mostrarComponentes(componentes) {
+    contenedor.innerHTML = '';
+
+    if (componentes.length === 0) {
+        contenedor.innerHTML = `
+            <div class="mensaje-vacio">
+                <p>📦 No hay componentes registrados</p>
+                <p style="font-size: 14px; color: #666;">Agrega tu primer componente usando el formulario</p>
+            </div>
+        `;
+        return;
     }
 
-    // Construir la tabla dinámicamente con los datos
-    let html = `
-      <table>
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Matrícula</th>
-            <th>Email</th>
-            <th>Carrera</th>
-            <th>Sem.</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>`;
+    componentes.forEach(componente => {
+        const card = document.createElement('div');
+        card.classList.add('producto-card');
 
-    data.datos.forEach(e => {
-      html += `
-        <tr>
-          <td>${e.nombre} ${e.apellido}</td>
-          <td><b>${e.matricula}</b></td>
-          <td>${e.email}</td>
-          <td>${e.carrera}</td>
-          <td>${e.semestre}</td>
-          <td>
-            <div class="td-acciones">
-              <button class="btn btn-warning btn-sm"
-                      onclick="prepararEdicion('${e._id}',
-                               '${e.nombre}','${e.apellido}',
-                               '${e.matricula}','${e.email}',
-                               '${e.carrera}',${e.semestre})">
-                ✏️ Editar
-              </button>
-              <button class="btn btn-danger btn-sm"
-                      onclick="pedirEliminar('${e._id}')">
-                🗑 Eliminar
-              </button>
+        // Manejar imagen por defecto si no carga
+        const imagenSrc = componente.imagen || 'https://via.placeholder.com/200x150?text=Sin+Imagen';
+
+        card.innerHTML = `
+            <img 
+                src="${imagenSrc}" 
+                alt="${componente.nombre}"
+                onerror="this.src='https://via.placeholder.com/200x150?text=Error+Imagen'"
+            >
+            <div class="producto-info">
+                <h3>${componente.nombre}</h3>
+                <p><strong>Marca:</strong> ${componente.marca}</p>
+                <p><strong>Categoría:</strong> ${componente.categoria}</p>
+                <p><strong>Precio:</strong> $${componente.precio}</p>
+                <p><strong>Stock:</strong> ${componente.stock}</p>
+                <div class="acciones">
+                    <button class="editar" onclick="editarComponente('${componente._id}')">
+                        ✏️ Editar
+                    </button>
+                    <button class="eliminar" onclick="eliminarComponente('${componente._id}')">
+                        🗑️ Eliminar
+                    </button>
+                </div>
             </div>
-          </td>
-        </tr>`;
+        `;
+        contenedor.appendChild(card);
     });
-
-    html += '</tbody></table>';
-    tablaContainer.innerHTML = html;
-
-  } catch (err) {
-    mostrarAlerta('Error al conectar con el servidor', 'error');
-  }
 }
 
-// ══════════════════════════════════════════════════════════
-// CREATE / UPDATE — Guardar (según si hay editId)
-// ══════════════════════════════════════════════════════════
-btnGuardar.addEventListener('click', async () => {
+// ── Mostrar mensaje de error ──────────────────────────────
+function mostrarMensajeError(mensaje) {
+    contenedor.innerHTML = `
+        <div class="mensaje-error">
+            <p>❌ ${mensaje}</p>
+            <button onclick="cargarComponentes()" style="margin-top: 10px; padding: 8px 16px; cursor: pointer;">
+                🔄 Reintentar
+            </button>
+        </div>
+    `;
+}
 
-  // Recolectar datos del formulario
-  const datos = {
-    nombre:   campos.nombre.value.trim(),
-    apellido: campos.apellido.value.trim(),
-    matricula:campos.matricula.value.trim(),
-    email:    campos.email.value.trim(),
-    carrera:  campos.carrera.value,
-    semestre: Number(campos.semestre.value)
-  };
+// ── Guardar o actualizar componente ───────────────────────
+formulario.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-  // Validación básica del lado cliente
-  if (!datos.nombre || !datos.email || !datos.matricula) {
-    mostrarAlerta('⚠️ Nombre, matrícula y email son obligatorios', 'error');
-    return;
-  }
+    const id = document.getElementById('componenteId').value;
+    const botonSubmit = formulario.querySelector('button[type="submit"]');
+    
+    // Deshabilitar botón para evitar doble envío
+    botonSubmit.disabled = true;
+    botonSubmit.textContent = '⏳ Guardando...';
 
-  const esEdicion = editId.value !== '';
-  const url       = esEdicion ? `${API}/${editId.value}` : API;
-  const metodo    = esEdicion ? 'PUT' : 'POST';
+    // Obtener datos del formulario
+    const componente = {
+        nombre: document.getElementById('nombre').value.trim(),
+        marca: document.getElementById('marca').value.trim(),
+        categoria: document.getElementById('categoria').value,
+        precio: parseFloat(document.getElementById('precio').value),
+        stock: parseInt(document.getElementById('stock').value),
+        imagen: document.getElementById('imagen').value.trim()
+    };
 
-  try {
-    const resp = await fetch(url, {
-      method: metodo,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(datos)
-    });
-    const data = await resp.json();
+    // Validación básica
+    if (!componente.nombre || !componente.marca || !componente.categoria) {
+        alert('⚠️ Por favor completa todos los campos obligatorios');
+        botonSubmit.disabled = false;
+        botonSubmit.textContent = 'Guardar Componente';
+        return;
+    }
 
-    if (!data.ok) throw new Error(data.error);
+    console.log('📤 Enviando datos:', componente);
 
-    mostrarAlerta(
-      esEdicion ? '✅ Estudiante actualizado correctamente'
-                 : '✅ Estudiante registrado correctamente',
-      'exito'
-    );
-    limpiarFormulario();
-    cargarEstudiantes(); // Recargar la lista
+    try {
+        let respuesta;
+        let url = API;
+        let metodo = 'POST';
 
-  } catch (err) {
-    mostrarAlerta(`❌ Error: ${err.message}`, 'error');
-  }
+        if (id) {
+            url = `${API}/${id}`;
+            metodo = 'PUT';
+            console.log(`✏️ Actualizando componente ID: ${id}`);
+        } else {
+            console.log('➕ Creando nuevo componente');
+        }
+
+        respuesta = await fetch(url, {
+            method: metodo,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(componente)
+        });
+
+        const resultado = await respuesta.json();
+        console.log('📥 Respuesta del servidor:', resultado);
+
+        if (!respuesta.ok) {
+            throw new Error(resultado.error || `Error ${respuesta.status}: ${respuesta.statusText}`);
+        }
+
+        // Éxito
+        console.log('✅ Componente guardado correctamente');
+        formulario.reset();
+        document.getElementById('componenteId').value = '';
+        await cargarComponentes();
+        
+        // Mostrar mensaje de éxito
+        mostrarMensajeExito(id ? 'Componente actualizado ✅' : 'Componente creado ✅');
+
+    } catch (error) {
+        console.error('❌ Error al guardar:', error);
+        alert(`❌ Error: ${error.message}`);
+    } finally {
+        // Rehabilitar botón
+        botonSubmit.disabled = false;
+        botonSubmit.textContent = 'Guardar Componente';
+    }
 });
 
-// ══════════════════════════════════════════════════════════
-// UPDATE — Precargar el formulario con datos existentes
-// ══════════════════════════════════════════════════════════
-function prepararEdicion(id, nombre, apellido, matricula, email, carrera, semestre) {
-  editId.value           = id;
-  campos.nombre.value    = nombre;
-  campos.apellido.value  = apellido;
-  campos.matricula.value = matricula;
-  campos.email.value     = email;
-  campos.carrera.value   = carrera;
-  campos.semestre.value  = semestre;
-
-  formTitulo.textContent  = '✏️ Editando estudiante';
-  btnCancelar.classList.remove('oculto');
-  window.scrollTo({ top: 0, behavior: 'smooth' }); // Sube al formulario
+// ── Mostrar mensaje de éxito temporal ─────────────────────
+function mostrarMensajeExito(mensaje) {
+    const mensajeDiv = document.createElement('div');
+    mensajeDiv.className = 'mensaje-exito';
+    mensajeDiv.textContent = mensaje;
+    mensajeDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+    `;
+    document.body.appendChild(mensajeDiv);
+    
+    setTimeout(() => {
+        mensajeDiv.style.opacity = '0';
+        mensajeDiv.style.transition = 'opacity 0.3s';
+        setTimeout(() => mensajeDiv.remove(), 300);
+    }, 3000);
 }
 
-// ══════════════════════════════════════════════════════════
-// DELETE — Confirmar y eliminar
-// ══════════════════════════════════════════════════════════
-function pedirEliminar(id) {
-  idParaEliminar = id;
-  modal.classList.remove('oculto'); // Muestra el modal de confirmación
+// ── Editar componente ──────────────────────────────────────
+async function editarComponente(id) {
+    try {
+        console.log(`✏️ Editando componente ID: ${id}`);
+        const respuesta = await fetch(`${API}/${id}`);
+        
+        if (!respuesta.ok) {
+            throw new Error(`Error HTTP: ${respuesta.status}`);
+        }
+        
+        const componente = await respuesta.json();
+        console.log('📥 Datos del componente:', componente);
+
+        document.getElementById('componenteId').value = componente._id;
+        document.getElementById('nombre').value = componente.nombre;
+        document.getElementById('marca').value = componente.marca;
+        document.getElementById('categoria').value = componente.categoria;
+        document.getElementById('precio').value = componente.precio;
+        document.getElementById('stock').value = componente.stock;
+        document.getElementById('imagen').value = componente.imagen;
+
+        // Cambiar texto del botón
+        const botonSubmit = formulario.querySelector('button[type="submit"]');
+        botonSubmit.textContent = '✏️ Actualizar Componente';
+
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+
+    } catch (error) {
+        console.error('❌ Error al cargar componente para editar:', error);
+        alert('Error al cargar los datos del componente');
+    }
 }
 
-btnConfirmar.addEventListener('click', async () => {
-  try {
-    const resp = await fetch(`${API}/${idParaEliminar}`, {
-      method: 'DELETE'
-    });
-    const data = await resp.json();
+// ── Eliminar componente ────────────────────────────────────
+async function eliminarComponente(id) {
+    const confirmar = confirm('⚠️ ¿Estás seguro de que deseas eliminar este componente?');
+    
+    if (!confirmar) return;
 
-    modal.classList.add('oculto');
-    mostrarAlerta('🗑 Estudiante eliminado correctamente', 'exito');
-    cargarEstudiantes();
+    try {
+        console.log(`🗑️ Eliminando componente ID: ${id}`);
+        const respuesta = await fetch(`${API}/${id}`, {
+            method: 'DELETE'
+        });
 
-  } catch (err) {
-    mostrarAlerta('Error al eliminar', 'error');
-  }
+        if (!respuesta.ok) {
+            const error = await respuesta.json();
+            throw new Error(error.error || `Error ${respuesta.status}`);
+        }
+
+        console.log('✅ Componente eliminado');
+        await cargarComponentes();
+        mostrarMensajeExito('Componente eliminado 🗑️');
+
+    } catch (error) {
+        console.error('❌ Error al eliminar:', error);
+        alert(`Error al eliminar: ${error.message}`);
+    }
+}
+
+// ── Cancelar edición ──────────────────────────────────────
+cancelar.addEventListener('click', () => {
+    formulario.reset();
+    document.getElementById('componenteId').value = '';
+    
+    // Restaurar texto del botón
+    const botonSubmit = formulario.querySelector('button[type="submit"]');
+    botonSubmit.textContent = 'Guardar Componente';
+    
+    console.log('🔄 Edición cancelada');
 });
 
-// ── Auxiliares ───────────────────────────────────────────
-btnCancelar.addEventListener('click', limpiarFormulario);
-btnModalCancel.addEventListener('click', () =>
-  modal.classList.add('oculto'));
+// ── Buscador ──────────────────────────────────────────────
+buscador.addEventListener('input', async (e) => {
+    const texto = e.target.value.toLowerCase().trim();
+    console.log(`🔍 Buscando: "${texto}"`);
 
-function limpiarFormulario() {
-  Object.values(campos).forEach(c => c.value = '');
-  editId.value          = '';
-  formTitulo.textContent = '➕ Nuevo Estudiante';
-  btnCancelar.classList.add('oculto');
-}
+    if (texto === '') {
+        cargarComponentes();
+        return;
+    }
 
-function mostrarAlerta(msg, tipo) {
-  alertaEl.textContent = msg;
-  alertaEl.className   = `alerta ${tipo}`;
-  setTimeout(() => {
-    alertaEl.className = 'alerta oculto';
-  }, 4000); // Ocultar después de 4 segundos
-}
+    try {
+        const respuesta = await fetch(API);
+        const componentes = await respuesta.json();
+        
+        const filtrados = componentes.filter(c => 
+            c.nombre.toLowerCase().includes(texto) ||
+            c.marca.toLowerCase().includes(texto) ||
+            c.categoria.toLowerCase().includes(texto)
+        );
+        
+        console.log(`🔍 ${filtrados.length} resultados encontrados`);
+        mostrarComponentes(filtrados);
+        
+    } catch (error) {
+        console.error('❌ Error en búsqueda:', error);
+    }
+});
 
-// ── Cargar al iniciar la página ──────────────────────────
-cargarEstudiantes();
+// ── Iniciar aplicación ────────────────────────────────────
+console.log('🔄 Iniciando aplicación...');
+cargarComponentes();
+
+// ── Estilos dinámicos para mensajes ──────────────────────
+// Agregar estilos para mensajes de éxito/error
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    .mensaje-vacio {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 50px 20px;
+        background: #f9f9f9;
+        border-radius: 10px;
+        font-size: 18px;
+    }
+    
+    .mensaje-error {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 30px 20px;
+        background: #ffebee;
+        border: 1px solid #ffcdd2;
+        border-radius: 10px;
+        color: #c62828;
+    }
+    
+    .mensaje-exito {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+    }
+`;
+document.head.appendChild(style);
+
+console.log('✅ app.js listo');
