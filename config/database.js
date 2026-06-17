@@ -1,26 +1,37 @@
 // ── config/database.js ──────────────────────────────────────
 const mongoose = require('mongoose');
 
-// ✅ ELIMINAR el fallback a localhost
-// Si no existe MONGODB_URI, la aplicación debe fallar EXPLÍCITAMENTE
+// ✅ SOLO usar variable de entorno - SIN fallback
 const MONGO_URI = process.env.MONGODB_URI;
 
 async function conectarDB() {
     try {
         // ✅ Verificar que la URI existe
         if (!MONGO_URI) {
-            throw new Error('❌ MONGODB_URI no está definida en las variables de entorno');
+            console.error('❌ ERROR CRÍTICO: MONGODB_URI no está definida');
+            console.error('📝 Asegúrate de configurar la variable en Render');
+            console.error('📝 URI esperada: mongodb+srv://usuario:contraseña@cluster.mongodb.net/');
+            process.exit(1);
         }
-        
+
         console.log('🔄 Conectando a MongoDB Atlas...');
-        console.log(`📡 URI: ${MONGO_URI.replace(/\/\/.*@/, '//****:****@')}`); // Oculta la contraseña en logs
+        console.log(`📡 URI configurada: ${MONGO_URI.substring(0, 30)}...`);
         
         await mongoose.connect(MONGO_URI);
+        
         console.log('✅ MongoDB Atlas conectado correctamente');
         console.log(`📦 Base de datos: ${mongoose.connection.db.databaseName}`);
+        
     } catch (error) {
-        console.error('❌ Error al conectar a MongoDB:', error.message);
-        // ✅ Salir con código de error para que Render lo detecte
+        console.error('❌ Error al conectar a MongoDB:');
+        console.error('📝', error.message);
+        
+        if (error.message.includes('Authentication failed')) {
+            console.error('💡 Solución: Verifica usuario y contraseña en la URI');
+        } else if (error.message.includes('ENOTFOUND')) {
+            console.error('💡 Solución: Verifica que el cluster de MongoDB esté activo');
+        }
+        
         process.exit(1);
     }
 }
@@ -44,30 +55,6 @@ process.on('SIGINT', async () => {
     console.log('🛑 Conexión a MongoDB cerrada');
     process.exit(0);
 });
-
-async function conectarDB() {
-    try {
-        console.log('🔄 Conectando a MongoDB...');
-        console.log('🔍 MONGODB_URI existe?', !!process.env.MONGODB_URI);
-        console.log('🔍 URI:', process.env.MONGODB_URI ? '✅ Configurada' : '❌ NO CONFIGURADA');
-        
-        // ✅ Si quieres ver la URI (ocultando la contraseña)
-        if (process.env.MONGODB_URI) {
-            const uriParts = process.env.MONGODB_URI.split('@');
-            const maskedURI = uriParts.length > 1 
-                ? `${uriParts[0].replace(/\/\/.*:/, '//****:****@')}${uriParts[1]}`
-                : 'URI no válida';
-            console.log('🔍 URI (oculta):', maskedURI);
-        }
-        
-        await mongoose.connect(MONGO_URI);
-        console.log('✅ MongoDB conectado correctamente');
-        console.log(`📦 Base de datos: ${mongoose.connection.db.databaseName}`);
-    } catch (error) {
-        console.error('❌ Error al conectar a MongoDB:', error.message);
-        process.exit(1);
-    }
-}
 
 module.exports = {
     conectarDB,
